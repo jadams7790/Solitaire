@@ -274,20 +274,37 @@ const SHEET_ROWS = 4;
 const SUIT_ROW   = { '♥':0, '♦':1, '♣':2, '♠':3 };
 
 function cardHTML(card, extraClass='', style='') {
+const SHEET_COLS = 14;
+const SHEET_ROWS = 4;
+const CELL_W = 64; // px per cell in the source sheet
+const CELL_H = 64;
+const SUIT_ROW = { '♥':0, '♦':1, '♣':2, '♠':3 };
+
+function cardHTML(card, extraClass='', style='') {
+  // We need the rendered card width to scale the sheet correctly.
+  // We derive it from the tableau element at render time.
+  const cardW = Math.round(getCardWidth());
+  const cardH = Math.round(cardW * CARD_RATIO);
+
+  // Scale factor: stretch each cell to exactly cardW × cardH
+  const scaleX = cardW / CELL_W;
+  const scaleY = cardH / CELL_H;
+  const sheetW  = Math.round(SHEET_COLS * CELL_W * scaleX); // total scaled sheet width
+  const sheetH  = Math.round(SHEET_ROWS * CELL_H * scaleY);
+
   if (!card.face) {
-    // Use col 13 row 0 as the card back
-    const bx = (13 / (SHEET_COLS - 1)) * 100;
+    // Col 13 = card back
+    const bx = -(13 * cardW);
     const by = 0;
-    return `<div class="card face-down ${extraClass}" style="${style};background-image:url('cardsLarge_tilemap_packed.png');background-repeat:no-repeat;background-size:${SHEET_COLS*100}% ${SHEET_ROWS*100}%;background-position:${bx.toFixed(4)}% ${by}%;border-radius:6px;"></div>`;
+    return `<div class="card face-down ${extraClass}" style="${style};background-image:url('cardsLarge_tilemap_packed.png');background-repeat:no-repeat;background-size:${sheetW}px ${sheetH}px;background-position:${bx}px ${by}px;"></div>`;
   }
 
-  const col = RANKS.indexOf(card.rank);   // 0–12
-  const row = SUIT_ROW[card.suit];        // 0–3
-  // Use percentage-based background-position so it scales to any rendered size
-  const bx = (col / (SHEET_COLS - 1)) * 100;
-  const by = (row / (SHEET_ROWS - 1)) * 100;
+  const col = RANKS.indexOf(card.rank); // 0–12
+  const row = SUIT_ROW[card.suit];      // 0–3
+  const bx  = -(col * cardW);
+  const by  = -(row * cardH);
 
-  return `<div class="card face-up ${extraClass}" style="${style};background-size:${SHEET_COLS*100}% ${SHEET_ROWS*100}%;background-position:${bx.toFixed(4)}% ${by.toFixed(4)}%;border-radius:6px;"></div>`;
+  return `<div class="card face-up ${extraClass}" style="${style};background-image:url('cardsLarge_tilemap_packed.png');background-repeat:no-repeat;background-size:${sheetW}px ${sheetH}px;background-position:${bx}px ${by}px;"></div>`;
 }
 
 // ── DRAW MODE ─────────────────────────────────────────────
