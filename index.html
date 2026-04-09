@@ -559,9 +559,10 @@ function updateCycleInfo() {
 const CARD_RATIO = 88/63;
 
 function getCardWidth() {
-  const el=document.getElementById('tableau');
-  const w=(el.parentElement?el.parentElement.offsetWidth:390)-16;
-  return (w-6*7)/7;
+  const el = document.getElementById('tableau');
+  const w = (el.parentElement ? el.parentElement.offsetWidth : 390) - 16;
+  const computed = (w - 6 * 7) / 7;
+  return computed > 10 ? computed : 50; // fallback to 50px if DOM not ready
 }
 
 function render() { renderStock(); renderWaste(); renderFoundations(); renderTableau(); }
