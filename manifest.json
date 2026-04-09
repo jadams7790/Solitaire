@@ -1,0 +1,8 @@
+{
+  "name": "Vegas Solitaire",
+  "short_name": "Solitaire",
+  "display": "standalone",
+  "background_color": "#122e1d",
+  "theme_color": "#122e1d",
+  "icons": [{ "src": "icon.png", "sizes": "512x512", "type": "image/png" }]
+}

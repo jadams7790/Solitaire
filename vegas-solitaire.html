@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vegas Solitaire</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --felt-dark: #122e1d;
+    --gold: #c9a84c;
+    --gold-dark: #8a6e2a;
+    --red: #c0392b;
+    --black: #1a1a1a;
+    --card-bg: #fdfaf4;
+    --shadow: rgba(0,0,0,0.45);
+    --money-green: #2ecc71;
+    --money-red: #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background: var(--felt-dark);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+      repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Header ── */
+  #header {
+    position: relative; z-index: 10; flex-shrink: 0;
+    background: linear-gradient(135deg, #0d2818 0%, #1a4a2e 50%, #0d2818 100%);
+    border-bottom: 2px solid var(--gold-dark);
+    padding: 8px 12px 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #header::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .title-block h1 {
+    font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 900;
+    color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
+  }
+  .title-block .subtitle {
+    font-size: 0.6rem; color: var(--gold-dark); letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  #score-panel { display: flex; gap: 10px; align-items: center; }
+  .score-item { text-align: center; }
+  .score-label { font-size: 0.5rem; color: var(--gold-dark); letter-spacing: 0.15em; text-transform: uppercase; display: block; }
+  .score-value { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; line-height: 1; }
+  .score-value.positive { color: var(--money-green); }
+  .score-value.negative { color: var(--money-red); }
+  .score-value.neutral  { color: var(--gold); }
+  #multiplier-badge {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: #0d2818; font-family: 'Playfair Display', serif;
+    font-size: 0.7rem; font-weight: 700; padding: 3px 7px; border-radius: 12px; white-space: nowrap;
+  }
+
+  /* ── Sub-bar ── */
+  #sub-bar {
+    position: relative; z-index: 9; flex-shrink: 0;
+    background: #0f3320; border-bottom: 1px solid rgba(201,168,76,0.15);
+    padding: 4px 12px; display: flex; align-items: center; justify-content: space-between;
+  }
+  #draw-toggle { display: flex; border: 1.5px solid var(--gold-dark); border-radius: 6px; overflow: hidden; }
+  .draw-btn {
+    font-family: 'Playfair Display', serif; font-size: 0.75rem; font-weight: 700;
+    padding: 3px 11px; border: none; background: transparent; color: var(--gold-dark); cursor: pointer; transition: all 0.15s;
+  }
+  .draw-btn.active { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: #0d2818; }
+  #cycle-info { font-size: 0.6rem; color: rgba(201,168,76,0.45); letter-spacing: 0.08em; }
+
+  /* ── Scrollable game area ── */
+  #game-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative; z-index: 1; }
+
+  /* ── Table ── */
+  #table { padding: 10px 8px 6px; max-width: 430px; margin: 0 auto; width: 100%; }
+  #top-row { display: flex; gap: 7px; margin-bottom: 10px; align-items: flex-start; }
+  #tableau { display: flex; gap: 7px; }
+
+  .col { flex: 1; display: flex; flex-direction: column; min-height: 80px; position: relative; }
+
+  .slot {
+    width: 100%; aspect-ratio: 63/88; border-radius: 6px;
+    border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15); flex-shrink: 0; position: relative;
+  }
+  .slot.foundation-slot { display: flex; align-items: center; justify-content: center; }
+  .slot.foundation-slot .suit-hint { font-size: 1.4rem; opacity: 0.2; }
+
+  /* ── Cards ── */
+  .card {
+    position: absolute; width: 100%; border-radius: 6px;
+    background: var(--card-bg); border: 1px solid rgba(0,0,0,0.18);
+    box-shadow: 0 2px 6px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.8);
+    cursor: pointer; overflow: hidden; -webkit-user-select: none;
+  }
+  .card.face-down {
+    background: linear-gradient(135deg, #1a4a2e 25%, #0f3320 50%, #1a4a2e 75%); cursor: default;
+  }
+  .card.face-down::after {
+    content: ''; position: absolute; inset: 3px; border-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.25);
+    background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(201,168,76,0.08) 3px, rgba(201,168,76,0.08) 6px);
+  }
+  .card.face-up.red .card-rank, .card.face-up.red .card-suit { color: var(--red); }
+  .card.face-up.black .card-rank, .card.face-up.black .card-suit { color: var(--black); }
+
+  .card-corner { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  .card-corner.tl { top: 2px; left: 3px; }
+  .card-corner.br { bottom: 2px; right: 3px; transform: rotate(180deg); }
+  .card-rank { font-family: 'Playfair Display', serif; font-size: clamp(0.55rem, 2.4vw, 0.8rem); font-weight: 700; line-height: 1; }
+  .card-suit { font-size: clamp(0.4rem, 1.7vw, 0.6rem); line-height: 1; }
+
+  /* Pip / face symbol */
+  .card-face-symbol {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: clamp(1rem, 4.5vw, 1.7rem); font-weight: 900; opacity: 0.15; pointer-events: none;
+  }
+
+  .card.selected {
+    box-shadow: 0 0 0 2.5px var(--gold), 0 4px 14px var(--shadow);
+    transform: translateY(-4px); z-index: 100 !important;
+  }
+  .card.waste-behind { cursor: default; filter: brightness(0.82); }
+
+  /* ── Stock / waste / foundations ── */
+  #stock-pile { flex: 1; aspect-ratio: 63/88; border-radius: 6px; cursor: pointer; position: relative; flex-shrink: 0; }
+  #stock-pile.empty {
+    border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center; color: rgba(201,168,76,0.4); font-size: 1.4rem;
+  }
+  #waste-pile { position: relative; flex-shrink: 0; }
+  .spacer { flex: 1; }
+  #foundations { display: flex; gap: 7px; flex: 4; }
+  .foundation { flex: 1; position: relative; aspect-ratio: 63/88; }
+
+  /* ── Bottom controls (fixed) ── */
+  #controls {
+    flex-shrink: 0; display: flex; gap: 6px; padding: 8px 10px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    justify-content: center; flex-wrap: wrap;
+    background: linear-gradient(0deg, #0d2818 0%, #1a4a2e 100%);
+    border-top: 1.5px solid var(--gold-dark); position: relative; z-index: 10;
+  }
+  .btn {
+    font-family: 'EB Garamond', serif; font-size: 0.85rem; letter-spacing: 0.05em;
+    padding: 7px 13px; border-radius: 6px; border: 1px solid var(--gold-dark);
+    background: linear-gradient(180deg, #1f5635 0%, #1a4a2e 100%); color: var(--gold); cursor: pointer; transition: all 0.15s;
+  }
+  .btn:active { background: linear-gradient(180deg, #1a4a2e 0%, #122e1d 100%); transform: scale(0.97); }
+  .btn.danger { border-color: #7a3020; background: linear-gradient(180deg, #4a1e10 0%, #321408 100%); color: #e8876a; }
+
+  /* ── Confirm dialog ── */
+  #confirm-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(5,20,10,0.88);
+    z-index: 500; align-items: center; justify-content: center;
+  }
+  #confirm-overlay.show { display: flex; }
+  #confirm-box {
+    background: linear-gradient(160deg, #1a4a2e, #0d2818);
+    border: 1.5px solid var(--gold-dark); border-radius: 14px;
+    padding: 24px 28px; max-width: 300px; width: 90%;
+    text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  #confirm-box h2 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.2rem; margin-bottom: 8px; }
+  #confirm-box p { color: rgba(201,168,76,0.65); font-size: 0.85rem; margin-bottom: 20px; line-height: 1.4; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: rgba(10,30,18,0.96); border: 1px solid var(--gold-dark); color: var(--gold);
+    font-family: 'Playfair Display', serif; font-size: 0.85rem; padding: 9px 18px; border-radius: 8px;
+    pointer-events: none; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 200; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Win overlay ── */
+  #win-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(5,20,10,0.92); z-index: 300;
+    align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  #win-overlay.show { display: flex; }
+  .win-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: var(--gold); text-align: center; text-shadow: 0 0 30px rgba(201,168,76,0.6); }
+  .win-amount { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 700; color: var(--money-green); text-align: center; }
+  .win-subtitle { font-size: 1rem; color: rgba(201,168,76,0.7); text-align: center; }
+
+  /* ── Confetti & float ── */
+  .confetti-piece { position: fixed; width: 8px; height: 8px; top: -10px; animation: confetti-fall linear forwards; z-index: 400; border-radius: 1px; }
+  @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+  .float-dollar { position: fixed; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; pointer-events: none; z-index: 250; animation: float-up 1.2s ease-out forwards; }
+  @keyframes float-up { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(0.8); } }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="title-block">
+    <h1>Vegas Solitaire</h1>
+    <div class="subtitle" id="subtitle">Casino Rules · Draw One</div>
+  </div>
+  <div id="score-panel">
+    <div class="score-item"><span class="score-label">Bankroll</span><span class="score-value neutral" id="bankroll-display">$0.00</span></div>
+    <div class="score-item"><span class="score-label">Session</span><span class="score-value neutral" id="session-display">$0.00</span></div>
+    <div id="multiplier-badge">1.00×</div>
+  </div>
+</div>
+
+<div id="sub-bar">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-size:0.6rem;color:rgba(201,168,76,0.5);letter-spacing:0.12em;text-transform:uppercase;">Draw</span>
+    <div id="draw-toggle">
+      <button class="draw-btn active" id="btn-draw1" onclick="setDrawMode(1)">1</button>
+      <button class="draw-btn" id="btn-draw3" onclick="setDrawMode(3)">3</button>
+    </div>
+  </div>
+  <div id="cycle-info">Cycle <span id="cycle-count">1</span> · Recycle: -$<span id="recycle-penalty">5.00</span></div>
+</div>
+
+<div id="game-scroll">
+  <div id="table">
+    <div id="top-row">
+      <div id="stock-pile"></div>
+      <div id="waste-pile"></div>
+      <div class="spacer"></div>
+      <div id="foundations">
+        <div class="foundation" id="f0"><div class="slot foundation-slot"><span class="suit-hint">♠</span></div></div>
+        <div class="foundation" id="f1"><div class="slot foundation-slot"><span class="suit-hint">♥</span></div></div>
+        <div class="foundation" id="f2"><div class="slot foundation-slot"><span class="suit-hint">♦</span></div></div>
+        <div class="foundation" id="f3"><div class="slot foundation-slot"><span class="suit-hint">♣</span></div></div>
+      </div>
+    </div>
+    <div id="tableau"></div>
+  </div>
+</div>
+
+<div id="controls">
+  <button class="btn" onclick="promptNewGame()">New Game</button>
+  <button class="btn" onclick="undoMove()">Undo</button>
+  <button class="btn" onclick="autoComplete()">Auto-Finish</button>
+  <button class="btn danger" onclick="promptResetBank()">Reset $</button>
+</div>
+
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p id="confirm-msg"></p>
+    <div class="confirm-btns">
+      <button class="btn" onclick="confirmCancel()">Cancel</button>
+      <button class="btn danger" onclick="confirmOK()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="win-overlay">
+  <div class="win-title">🃏 You Win! 🃏</div>
+  <div class="win-amount" id="win-amount"></div>
+  <div class="win-subtitle" id="win-subtitle"></div>
+  <button class="btn" style="margin-top:10px;font-size:1rem;padding:12px 28px;" onclick="promptNewGame()">Deal Again</button>
+</div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RED_SUITS = new Set(['♥','♦']);
+const SCORING = { DEAL_COST:-52, FOUNDATION_REWARD:5, RECYCLE_BASE:-5, MULTIPLIER_BONUS:0.05, WIN_BONUS:150 };
+
+// ── PIP POSITIONS ─────────────────────────────────────────
+// x/y as % of card, inv = upside-down
+function getPipPositions(rank) {
+  const L=28, R=72, C=50;
+  const T1=18, T2=34, T3=50, B2=66, B1=82;
+  switch(rank) {
+    case 'A':  return [{x:C,y:T3}];
+    case '2':  return [{x:C,y:T1},{x:C,y:B1,v:1}];
+    case '3':  return [{x:C,y:T1},{x:C,y:T3},{x:C,y:B1,v:1}];
+    case '4':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '5':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '6':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:T3},{x:R,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '7':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3},{x:R,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '8':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3},{x:R,y:T3},{x:C,y:B2,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '9':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:T2+4},{x:R,y:T2+4},{x:C,y:T3},{x:L,y:B2-4,v:1},{x:R,y:B2-4,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    case '10': return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3-6},{x:R,y:T3-6},{x:L,y:T3+6,v:1},{x:R,y:T3+6,v:1},{x:C,y:B2,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
+    default:   return [];
+  }
+}
+
+// ── CARD HTML ─────────────────────────────────────────────
+function cardHTML(card, extraClass='', style='') {
+  if (!card.face) return `<div class="card face-down ${extraClass}" style="${style}"></div>`;
+  const red = RED_SUITS.has(card.suit);
+  const colorClass = red ? 'red' : 'black';
+  const pipColor = red ? 'var(--red)' : 'var(--black)';
+  const isFace = ['J','Q','K'].includes(card.rank);
+
+  let pips = '';
+  if (isFace) {
+    pips = `<div class="card-face-symbol" style="color:${pipColor}">${card.rank}</div>`;
+  } else {
+    const positions = getPipPositions(card.rank);
+    const fs = 'clamp(0.45rem,1.85vw,0.7rem)';
+    pips = positions.map(p =>
+      `<span style="position:absolute;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%)${p.v?' rotate(180deg)':''};font-size:${fs};color:${pipColor};line-height:1;">${card.suit}</span>`
+    ).join('');
+  }
+
+  return `<div class="card face-up ${colorClass} ${extraClass}" style="${style}">
+    <div class="card-corner tl"><span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span></div>
+    <div class="card-corner br"><span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span></div>
+    ${pips}
+  </div>`;
+}
+
+// ── DRAW MODE ─────────────────────────────────────────────
+let drawMode = 1;
+function setDrawMode(n) {
+  drawMode = n;
+  document.getElementById('btn-draw1').classList.toggle('active', n===1);
+  document.getElementById('btn-draw3').classList.toggle('active', n===3);
+  document.getElementById('subtitle').textContent = `Casino Rules · Draw ${n}`;
+  if (state.waste) renderWaste();
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let state = {};
+let history = [];
+let bankroll = 0, sessionEarnings = 0, multiplier = 1.0, stockCycles = 0;
+let selectedCard = null, selectedSource = null;
+
+function initState() {
+  return { stock:[], waste:[], foundations:[[],[],[],[]], tableau:[[],[],[],[],[],[],[]], foundationCount:0 };
+}
+
+function buildDeck() {
+  const d = [];
+  for (const s of SUITS) for (const r of RANKS) d.push({suit:s, rank:r, face:false});
+  return d;
+}
+
+function shuffle(a) {
+  for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function rankIndex(r) { return RANKS.indexOf(r); }
+function isRed(s)     { return RED_SUITS.has(s); }
+
+// ── CONFIRM DIALOG ────────────────────────────────────────
+let confirmCB = null;
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  confirmCB = cb;
+  document.getElementById('confirm-overlay').classList.add('show');
+}
+function confirmCancel() { document.getElementById('confirm-overlay').classList.remove('show'); confirmCB=null; }
+function confirmOK()     { document.getElementById('confirm-overlay').classList.remove('show'); if(confirmCB){confirmCB();confirmCB=null;} }
+
+function promptNewGame() {
+  showConfirm('New Game?', `Start a new hand? Entry costs $${Math.abs(SCORING.DEAL_COST)} and current progress is lost.`, newGame);
+}
+function promptResetBank() {
+  showConfirm('Reset Bankroll?', 'Reset your bankroll and session to $0 and deal a new game?', ()=>{ bankroll=0; sessionEarnings=0; newGame(); });
+}
+
+// ── GAME INIT ─────────────────────────────────────────────
+function newGame() {
+  bankroll += SCORING.DEAL_COST;
+  sessionEarnings += SCORING.DEAL_COST;
+  multiplier = 1.0; stockCycles = 0; history = [];
+  document.getElementById('win-overlay').classList.remove('show');
+  clearConfetti();
+  state = initState();
+  const deck = shuffle(buildDeck());
+  let idx = 0;
+  for (let col=0;col<7;col++) for (let row=0;row<=col;row++) { const c=deck[idx++]; c.face=(row===col); state.tableau[col].push(c); }
+  while (idx<deck.length) { const c=deck[idx++]; c.face=false; state.stock.push(c); }
+  selectedCard = null; selectedSource = null;
+  updateCycleInfo(); updateScoreDisplay(); render();
+  showToast(`-$${Math.abs(SCORING.DEAL_COST).toFixed(2)} · New deal!`);
+}
+
+// ── SELECTION ─────────────────────────────────────────────
+function clearSelection() { selectedCard=null; selectedSource=null; render(); }
+
+// ── MOVES ─────────────────────────────────────────────────
+function canPlaceOnFoundation(card, fi) {
+  const f=state.foundations[fi];
+  if (!f.length) return card.rank==='A';
+  const top=f[f.length-1];
+  return top.suit===card.suit && rankIndex(card.rank)===rankIndex(top.rank)+1;
+}
+function canPlaceOnTableau(card, col) {
+  const t=state.tableau[col];
+  if (!t.length) return card.rank==='K';
+  const top=t[t.length-1];
+  return top.face && isRed(card.suit)!==isRed(top.suit) && rankIndex(card.rank)===rankIndex(top.rank)-1;
+}
+function findFoundationFor(card) { for(let i=0;i<4;i++) if(canPlaceOnFoundation(card,i)) return i; return -1; }
+
+function saveHistory() {
+  history.push(JSON.parse(JSON.stringify({state,bankroll,sessionEarnings,multiplier,stockCycles})));
+  if (history.length>50) history.shift();
+}
+
+function undoMove() {
+  if (!history.length) { showToast('Nothing to undo'); return; }
+  const h=history.pop();
+  state=h.state; bankroll=h.bankroll; sessionEarnings=h.sessionEarnings; multiplier=h.multiplier; stockCycles=h.stockCycles;
+  selectedCard=null; selectedSource=null;
+  updateScoreDisplay(); updateCycleInfo(); render();
+  showToast('Undone');
+}
+
+function moveToFoundation(card, src, fi) {
+  saveHistory(); removeSrc(src);
+  state.foundations[fi].push(card); state.foundationCount++;
+  const reward = SCORING.FOUNDATION_REWARD * multiplier;
+  bankroll+=reward; sessionEarnings+=reward;
+  multiplier = +(1 + state.foundationCount*SCORING.MULTIPLIER_BONUS).toFixed(3);
+  flipTopTableau(); checkWin(); updateScoreDisplay(); updateCycleInfo(); render();
+  floatDollar(`+$${reward.toFixed(2)}`, 'positive');
+}
+
+function moveStackToTableau(cards, src, col) {
+  saveHistory(); removeStackSrc(src, cards.length);
+  for (const c of cards) { c.face=true; state.tableau[col].push(c); }
+  flipTopTableau(); updateScoreDisplay(); render();
+}
+
+function removeSrc(src) {
+  if (src.type==='waste') state.waste.pop();
+  else if (src.type==='tableau') state.tableau[src.col].pop();
+  else if (src.type==='foundation') state.foundations[src.fi].pop();
+}
+function removeStackSrc(src, n) {
+  if (src.type==='tableau') state.tableau[src.col].splice(-n,n);
+  else if (src.type==='waste') state.waste.pop();
+  else if (src.type==='foundation') state.foundations[src.fi].pop();
+}
+function flipTopTableau() {
+  for (let col=0;col<7;col++) { const t=state.tableau[col]; if(t.length&&!t[t.length-1].face) t[t.length-1].face=true; }
+}
+
+function getCardsFromSrc(src) {
+  if (src.type==='tableau') return state.tableau[src.col].slice(src.stackStart);
+  if (src.type==='waste')   return state.waste.length ? [state.waste[state.waste.length-1]] : [];
+  if (src.type==='foundation') { const f=state.foundations[src.fi]; return f.length?[f[f.length-1]]:[];}
+  return [];
+}
+
+// ── STOCK ─────────────────────────────────────────────────
+function clickStock() {
+  clearSelection();
+  if (!state.stock.length) {
+    if (!state.waste.length) { showToast('No cards left'); return; }
+    saveHistory(); stockCycles++;
+    const penalty = SCORING.RECYCLE_BASE * stockCycles * multiplier;
+    bankroll+=penalty; sessionEarnings+=penalty;
+    state.stock = [...state.waste].reverse().map(c=>({...c,face:false}));
+    state.waste = [];
+    updateScoreDisplay(); updateCycleInfo(); render();
+    floatDollar(`${penalty.toFixed(2)}`, 'negative');
+    showToast(`Recycled · Penalty $${Math.abs(penalty).toFixed(2)}`);
+    return;
+  }
+  saveHistory();
+  const n = drawMode===3 ? Math.min(3,state.stock.length) : 1;
+  for (let i=0;i<n;i++) { const c=state.stock.pop(); c.face=true; state.waste.push(c); }
+  render();
+}
+
+// ── CLICK HANDLERS ────────────────────────────────────────
+function handleWasteClick(e) {
+  if (!state.waste.length) return;
+  if (drawMode===3 && e?.target?.classList.contains('waste-behind')) return;
+  const card = state.waste[state.waste.length-1];
+  if (selectedSource) { clearSelection(); return; }
+  const fi = findFoundationFor(card);
+  if (fi>=0) { moveToFoundation(card,{type:'waste'},fi); return; }
+  selectedCard=card; selectedSource={type:'waste'};
+  render();
+}
+
+function handleFoundationClick(fi) {
+  if (!selectedSource) {
+    if (!state.foundations[fi].length) return;
+    selectedCard=state.foundations[fi][state.foundations[fi].length-1];
+    selectedSource={type:'foundation',fi}; render(); return;
+  }
+  if (selectedCard && canPlaceOnFoundation(selectedCard,fi)) {
+    moveToFoundation(selectedCard,selectedSource,fi); selectedCard=null; selectedSource=null;
+  } else { clearSelection(); }
+}
+
+function handleTableauClick(col, cardIdx) {
+  const t=state.tableau[col];
+  if (!selectedSource) {
+    if (!t.length) return;
+    const card=t[cardIdx];
+    if (!card.face) return;
+    if (cardIdx===t.length-1) { const fi=findFoundationFor(card); if(fi>=0){moveToFoundation(card,{type:'tableau',col},fi);return;} }
+    selectedCard=t[cardIdx]; selectedSource={type:'tableau',col,stackStart:cardIdx}; render(); return;
+  }
+  const cards=getCardsFromSrc(selectedSource);
+  if (!cards.length) { clearSelection(); return; }
+  if (canPlaceOnTableau(cards[0],col)) {
+    if (t.length===0 && cards[0].rank!=='K') { clearSelection(); return; }
+    moveStackToTableau(cards,selectedSource,col); selectedCard=null; selectedSource=null;
+  } else { clearSelection(); }
+}
+
+function handleEmptyTableauClick(col) {
+  if (!selectedSource) return;
+  const cards=getCardsFromSrc(selectedSource);
+  if (cards.length && cards[0].rank==='K') { moveStackToTableau(cards,selectedSource,col); selectedCard=null; selectedSource=null; }
+  else clearSelection();
+}
+
+// ── AUTO-COMPLETE ─────────────────────────────────────────
+function autoComplete() {
+  if (state.stock.length||state.waste.length) { showToast('Clear stock & waste first'); return; }
+  for (const col of state.tableau) for (const c of col) if (!c.face) { showToast('Flip all cards first'); return; }
+  function step() {
+    for (let col=0;col<7;col++) {
+      const t=state.tableau[col]; if(!t.length) continue;
+      const fi=findFoundationFor(t[t.length-1]);
+      if (fi>=0) { moveToFoundation(t[t.length-1],{type:'tableau',col},fi); setTimeout(step,100); return; }
+    }
+  }
+  step();
+}
+
+// ── WIN ───────────────────────────────────────────────────
+function checkWin() {
+  if (state.foundationCount<52) return;
+  const bonus=SCORING.WIN_BONUS*multiplier;
+  bankroll+=bonus; sessionEarnings+=bonus; updateScoreDisplay();
+  setTimeout(()=>{
+    document.getElementById('win-amount').textContent=`+$${bonus.toFixed(2)} Jackpot!`;
+    document.getElementById('win-subtitle').textContent=`Session: ${sessionEarnings>=0?'+':''}$${sessionEarnings.toFixed(2)} · ${multiplier.toFixed(2)}×`;
+    document.getElementById('win-overlay').classList.add('show');
+    launchConfetti();
+  },300);
+}
+
+// ── SCORE DISPLAY ─────────────────────────────────────────
+function updateScoreDisplay() {
+  const br=document.getElementById('bankroll-display');
+  const se=document.getElementById('session-display');
+  br.textContent=`${bankroll>=0?'+':''}$${Math.abs(bankroll).toFixed(2)}`;
+  br.className='score-value '+(bankroll>=0?'positive':'negative');
+  se.textContent=`${sessionEarnings>=0?'+':''}$${Math.abs(sessionEarnings).toFixed(2)}`;
+  se.className='score-value '+(sessionEarnings>=0?'positive':'negative');
+  document.getElementById('multiplier-badge').textContent=`${multiplier.toFixed(2)}×`;
+}
+function updateCycleInfo() {
+  document.getElementById('cycle-count').textContent=stockCycles+1;
+  document.getElementById('recycle-penalty').textContent=Math.abs(SCORING.RECYCLE_BASE*(stockCycles+1)*multiplier).toFixed(2);
+}
+
+// ── RENDER ────────────────────────────────────────────────
+const CARD_RATIO = 88/63;
+
+function getCardWidth() {
+  const el=document.getElementById('tableau');
+  const w=(el.parentElement?el.parentElement.offsetWidth:390)-16;
+  return (w-6*7)/7;
+}
+
+function render() { renderStock(); renderWaste(); renderFoundations(); renderTableau(); }
+
+function renderStock() {
+  const el=document.getElementById('stock-pile');
+  if (!state.stock.length) { el.className='slot empty'; el.innerHTML='↺'; }
+  else { el.className=''; el.innerHTML=cardHTML({face:false},'','position:relative;width:100%;aspect-ratio:63/88;'); }
+  el.onclick=clickStock;
+}
+
+function renderWaste() {
+  const el=document.getElementById('waste-pile');
+  const cardW=Math.round(getCardWidth());
+  const cardH=Math.round(cardW*CARD_RATIO);
+
+  if (!state.waste.length) {
+    el.style.cssText=`width:${cardW}px;height:${cardH}px;position:relative;flex-shrink:0;`;
+    el.innerHTML=`<div class="slot" style="position:absolute;inset:0;width:${cardW}px;height:${cardH}px;aspect-ratio:unset;"></div>`;
+    el.onclick=null; return;
+  }
+
+  if (drawMode===1) {
+    el.style.cssText=`width:${cardW}px;height:${cardH}px;position:relative;flex-shrink:0;`;
+    const card=state.waste[state.waste.length-1];
+    const sel=selectedSource?.type==='waste';
+    el.innerHTML=cardHTML(card,sel?'selected':'',`position:absolute;inset:0;width:${cardW}px;height:${cardH}px;`);
+    el.onclick=handleWasteClick;
+  } else {
+    const visible=state.waste.slice(-3);
+    const fanOffset=Math.round(cardW*0.22);
+    const totalW=cardW+(visible.length-1)*fanOffset;
+    el.style.cssText=`width:${totalW}px;height:${cardH}px;position:relative;flex-shrink:0;`;
+    el.innerHTML='';
+    visible.forEach((card,i)=>{
+      const isTop=i===visible.length-1;
+      const sel=isTop&&selectedSource?.type==='waste';
+      const left=i*fanOffset;
+      el.innerHTML+=cardHTML(card,(sel?'selected':'')+(isTop?' waste-top':' waste-behind'),
+        `position:absolute;left:${left}px;top:0;width:${cardW}px;height:${cardH}px;z-index:${i+1};`);
+    });
+    el.onclick=handleWasteClick;
+  }
+}
+
+function renderFoundations() {
+  const suits=['♠','♥','♦','♣'];
+  for (let fi=0;fi<4;fi++) {
+    const el=document.getElementById('f'+fi);
+    const f=state.foundations[fi];
+    if (!f.length) {
+      el.innerHTML=`<div class="slot foundation-slot"><span class="suit-hint">${suits[fi]}</span></div>`;
+    } else {
+      const card=f[f.length-1];
+      const sel=selectedSource?.type==='foundation'&&selectedSource.fi===fi;
+      el.innerHTML=cardHTML(card,sel?'selected':'','position:relative;width:100%;aspect-ratio:63/88;');
+    }
+    el.onclick=()=>handleFoundationClick(fi);
+  }
+}
+
+function renderTableau() {
+  const tabEl=document.getElementById('tableau');
+  tabEl.innerHTML='';
+  const tableW=tabEl.parentElement.offsetWidth-16;
+  const colW=(tableW-6*7)/7;
+  const cardH=colW*CARD_RATIO;
+
+  for (let col=0;col<7;col++) {
+    const colEl=document.createElement('div');
+    colEl.className='col';
+    const t=state.tableau[col];
+    if (!t.length) {
+      colEl.innerHTML='<div class="slot" style="position:relative;width:100%;aspect-ratio:63/88;"></div>';
+      colEl.onclick=()=>handleEmptyTableauClick(col);
+      tabEl.appendChild(colEl); continue;
+    }
+    const fuCount=t.filter(c=>c.face).length;
+    const fdCount=t.length-fuCount;
+    const availH=window.innerHeight*0.54;
+    const maxOff=Math.min(24,Math.floor((availH-cardH)/Math.max(1,t.length-1)));
+    const fdOff=Math.min(8,maxOff), fuOff=Math.min(maxOff,26);
+    colEl.style.height=(cardH+fdCount*fdOff+fuCount*fuOff)+'px';
+
+    let top=0;
+    for (let i=0;i<t.length;i++) {
+      const card=t[i];
+      const isSel=selectedSource?.type==='tableau'&&selectedSource.col===col&&i>=selectedSource.stackStart;
+      colEl.innerHTML+=cardHTML(card,isSel?'selected':'',`top:${top}px;left:0;width:100%;z-index:${i+1};aspect-ratio:63/88;`);
+      top+=card.face?fuOff:fdOff;
+    }
+    colEl.onclick=(e)=>{
+      const cards=colEl.querySelectorAll('.card');
+      let idx=-1;
+      for (let i=cards.length-1;i>=0;i--) { const r=cards[i].getBoundingClientRect(); if(e.clientY>=r.top&&e.clientY<=r.bottom){idx=i;break;} }
+      if (idx>=0) handleTableauClick(col,idx);
+      else if (!t.length) handleEmptyTableauClick(col);
+    };
+    tabEl.appendChild(colEl);
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function floatDollar(text,cls) {
+  const el=document.createElement('div'); el.className='float-dollar'; el.textContent=text;
+  el.style.color=cls==='positive'?'var(--money-green)':'var(--money-red)';
+  el.style.left=(30+Math.random()*40)+'%'; el.style.top='120px';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),1300);
+}
+
+function launchConfetti() {
+  const colors=['#c9a84c','#2ecc71','#e8c96a','#fff','#f39c12','#3498db'];
+  for (let i=0;i<60;i++) setTimeout(()=>{
+    const el=document.createElement('div'); el.className='confetti-piece';
+    el.style.left=Math.random()*100+'vw'; el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration=(1.5+Math.random()*2)+'s'; el.style.animationDelay=Math.random()*0.5+'s';
+    document.body.appendChild(el); setTimeout(()=>el.remove(),3500);
+  },i*40);
+}
+
+function clearConfetti() { document.querySelectorAll('.confetti-piece').forEach(e=>e.remove()); }
+
+// ── BOOT ─────────────────────────────────────────────────
+setDrawMode(1);
+newGame();
+</script>
+</body>
+</html>
