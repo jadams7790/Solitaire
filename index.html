@@ -112,28 +112,7 @@
     box-shadow: 0 2px 6px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.8);
     cursor: pointer; overflow: hidden; -webkit-user-select: none;
   }
-  .card.face-down {
-    background: linear-gradient(135deg, #1a4a2e 25%, #0f3320 50%, #1a4a2e 75%); cursor: default;
-  }
-  .card.face-down::after {
-    content: ''; position: absolute; inset: 3px; border-radius: 4px;
-    border: 1px solid rgba(201,168,76,0.25);
-    background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(201,168,76,0.08) 3px, rgba(201,168,76,0.08) 6px);
-  }
-  .card.face-up.red .card-rank, .card.face-up.red .card-suit { color: var(--red); }
-  .card.face-up.black .card-rank, .card.face-up.black .card-suit { color: var(--black); }
-
-  .card-corner { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 1; }
-  .card-corner.tl { top: 2px; left: 3px; }
-  .card-corner.br { bottom: 2px; right: 3px; transform: rotate(180deg); }
-  .card-rank { font-family: 'Playfair Display', serif; font-size: clamp(0.55rem, 2.4vw, 0.8rem); font-weight: 700; line-height: 1; }
-  .card-suit { font-size: clamp(0.4rem, 1.7vw, 0.6rem); line-height: 1; }
-
-  /* Pip / face symbol */
-  .card-face-symbol {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif; font-size: clamp(1rem, 4.5vw, 1.7rem); font-weight: 900; opacity: 0.15; pointer-events: none;
-  }
+  .card.face-down { cursor: default; }
 
   .card.selected {
     box-shadow: 0 0 0 2.5px var(--gold), 0 4px 14px var(--shadow);
@@ -286,50 +265,29 @@ const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const RED_SUITS = new Set(['♥','♦']);
 const SCORING = { DEAL_COST:-52, FOUNDATION_REWARD:5, RECYCLE_BASE:-5, MULTIPLIER_BONUS:0.05, WIN_BONUS:150 };
 
-// ── PIP POSITIONS ─────────────────────────────────────────
-// x/y as % of card, inv = upside-down
-function getPipPositions(rank) {
-  const L=28, R=72, C=50;
-  const T1=18, T2=34, T3=50, B2=66, B1=82;
-  switch(rank) {
-    case 'A':  return [{x:C,y:T3}];
-    case '2':  return [{x:C,y:T1},{x:C,y:B1,v:1}];
-    case '3':  return [{x:C,y:T1},{x:C,y:T3},{x:C,y:B1,v:1}];
-    case '4':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '5':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '6':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:T3},{x:R,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '7':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3},{x:R,y:T3},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '8':  return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3},{x:R,y:T3},{x:C,y:B2,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '9':  return [{x:L,y:T1},{x:R,y:T1},{x:L,y:T2+4},{x:R,y:T2+4},{x:C,y:T3},{x:L,y:B2-4,v:1},{x:R,y:B2-4,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    case '10': return [{x:L,y:T1},{x:R,y:T1},{x:C,y:T2},{x:L,y:T3-6},{x:R,y:T3-6},{x:L,y:T3+6,v:1},{x:R,y:T3+6,v:1},{x:C,y:B2,v:1},{x:L,y:B1,v:1},{x:R,y:B1,v:1}];
-    default:   return [];
-  }
-}
+// ── SPRITE SHEET CARD RENDERER ───────────────────────────
+// Sheet: 14 cols × 4 rows, 64×64px per cell
+// Cols 0-12: A 2 3 4 5 6 7 8 9 10 J Q K  |  Col 13: card back
+// Rows: 0=Hearts, 1=Diamonds, 2=Clubs, 3=Spades
+const SHEET_COLS = 14;
+const SHEET_ROWS = 4;
+const SUIT_ROW   = { '♥':0, '♦':1, '♣':2, '♠':3 };
 
-// ── CARD HTML ─────────────────────────────────────────────
 function cardHTML(card, extraClass='', style='') {
-  if (!card.face) return `<div class="card face-down ${extraClass}" style="${style}"></div>`;
-  const red = RED_SUITS.has(card.suit);
-  const colorClass = red ? 'red' : 'black';
-  const pipColor = red ? 'var(--red)' : 'var(--black)';
-  const isFace = ['J','Q','K'].includes(card.rank);
-
-  let pips = '';
-  if (isFace) {
-    pips = `<div class="card-face-symbol" style="color:${pipColor}">${card.rank}</div>`;
-  } else {
-    const positions = getPipPositions(card.rank);
-    const fs = 'clamp(0.45rem,1.85vw,0.7rem)';
-    pips = positions.map(p =>
-      `<span style="position:absolute;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%)${p.v?' rotate(180deg)':''};font-size:${fs};color:${pipColor};line-height:1;">${card.suit}</span>`
-    ).join('');
+  if (!card.face) {
+    // Use col 13 row 0 as the card back
+    const bx = (13 / (SHEET_COLS - 1)) * 100;
+    const by = 0;
+    return `<div class="card face-down ${extraClass}" style="${style};background-image:url('cardsLarge_tilemap_packed.png');background-repeat:no-repeat;background-size:${SHEET_COLS*100}% ${SHEET_ROWS*100}%;background-position:${bx.toFixed(4)}% ${by}%;border-radius:6px;"></div>`;
   }
 
-  return `<div class="card face-up ${colorClass} ${extraClass}" style="${style}">
-    <div class="card-corner tl"><span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span></div>
-    <div class="card-corner br"><span class="card-rank">${card.rank}</span><span class="card-suit">${card.suit}</span></div>
-    ${pips}
-  </div>`;
+  const col = RANKS.indexOf(card.rank);   // 0–12
+  const row = SUIT_ROW[card.suit];        // 0–3
+  // Use percentage-based background-position so it scales to any rendered size
+  const bx = (col / (SHEET_COLS - 1)) * 100;
+  const by = (row / (SHEET_ROWS - 1)) * 100;
+
+  return `<div class="card face-up ${extraClass}" style="${style};background-size:${SHEET_COLS*100}% ${SHEET_ROWS*100}%;background-position:${bx.toFixed(4)}% ${by.toFixed(4)}%;border-radius:6px;"></div>`;
 }
 
 // ── DRAW MODE ─────────────────────────────────────────────
