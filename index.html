@@ -86,7 +86,10 @@
   #cycle-info { font-size: 0.6rem; color: rgba(201,168,76,0.45); letter-spacing: 0.08em; }
 
   /* ── Scrollable game area ── */
-  #game-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative; z-index: 1; }
+  #game-scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; position: relative; z-index: 1;
+  }
 
   /* ── Table ── */
   #table { padding: 10px 8px 6px; max-width: 430px; margin: 0 auto; width: 100%; }
@@ -95,25 +98,22 @@
   .col { flex: 1; display: flex; flex-direction: column; min-height: 80px; position: relative; }
 
   .slot {
-    width: 100%; aspect-ratio: 63/91; border-radius: 6px;
-    border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15); flex-shrink: 0; position: relative;
+    width: 100%; border-radius: 6px;
+    border: 1.5px dashed rgba(201,168,76,0.3);
+    background: rgba(0,0,0,0.15); flex-shrink: 0; position: relative;
   }
   .slot.foundation-slot { display: flex; align-items: center; justify-content: center; }
   .slot.foundation-slot .suit-hint { font-size: 1.4rem; opacity: 0.2; }
 
-  /* ── Cards ──
-     All visual rendering (face-up, face-down) is done via inline background-image
-     from the sprite sheet. The .card class only handles layout and interaction. */
+  /* ── Cards ── */
   .card {
     position: absolute;
     border-radius: 4px;
     cursor: pointer;
     overflow: hidden;
     -webkit-user-select: none;
-    /* No background-color here — sprite covers the full card */
   }
   .card.face-down { cursor: default; }
-
   .card.selected {
     box-shadow: 0 0 0 2.5px var(--gold), 0 4px 14px var(--shadow);
     transform: translateY(-4px);
@@ -122,16 +122,18 @@
   .card.waste-behind { cursor: default; filter: brightness(0.82); }
 
   /* ── Stock / waste / foundations ── */
-  #stock-pile { flex: 1; aspect-ratio: 63/91; border-radius: 6px; cursor: pointer; position: relative; flex-shrink: 0; }
+  #stock-pile {
+    border-radius: 6px; cursor: pointer; position: relative; flex-shrink: 0;
+  }
   #stock-pile.empty {
     border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15);
-    display: flex; align-items: center; justify-content: center; color: rgba(201,168,76,0.4); font-size: 1.4rem;
-    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(201,168,76,0.4); font-size: 1.4rem; border-radius: 6px;
   }
   #waste-pile { position: relative; flex-shrink: 0; }
   .spacer { flex: 1; }
   #foundations { display: flex; gap: 7px; flex: 4; }
-  .foundation { flex: 1; position: relative; aspect-ratio: 63/91; }
+  .foundation { flex: 1; position: relative; }
 
   /* ── Bottom controls (fixed) ── */
   #controls {
@@ -144,7 +146,8 @@
   .btn {
     font-family: 'EB Garamond', serif; font-size: 0.85rem; letter-spacing: 0.05em;
     padding: 7px 13px; border-radius: 6px; border: 1px solid var(--gold-dark);
-    background: linear-gradient(180deg, #1f5635 0%, #1a4a2e 100%); color: var(--gold); cursor: pointer; transition: all 0.15s;
+    background: linear-gradient(180deg, #1f5635 0%, #1a4a2e 100%);
+    color: var(--gold); cursor: pointer; transition: all 0.15s;
   }
   .btn:active { background: linear-gradient(180deg, #1a4a2e 0%, #122e1d 100%); transform: scale(0.97); }
   .btn.danger { border-color: #7a3020; background: linear-gradient(180deg, #4a1e10 0%, #321408 100%); color: #e8876a; }
@@ -185,10 +188,19 @@
   .win-subtitle { font-size: 1rem; color: rgba(201,168,76,0.7); text-align: center; }
 
   /* ── Confetti & float ── */
-  .confetti-piece { position: fixed; width: 8px; height: 8px; top: -10px; animation: confetti-fall linear forwards; z-index: 400; border-radius: 1px; }
+  .confetti-piece {
+    position: fixed; width: 8px; height: 8px; top: -10px;
+    animation: confetti-fall linear forwards; z-index: 400; border-radius: 1px;
+  }
   @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
-  .float-dollar { position: fixed; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; pointer-events: none; z-index: 250; animation: float-up 1.2s ease-out forwards; }
-  @keyframes float-up { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(0.8); } }
+  .float-dollar {
+    position: fixed; font-family: 'Playfair Display', serif; font-size: 1rem;
+    font-weight: 700; pointer-events: none; z-index: 250; animation: float-up 1.2s ease-out forwards;
+  }
+  @keyframes float-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
+  }
 </style>
 </head>
 <body>
@@ -199,8 +211,14 @@
     <div class="subtitle" id="subtitle">Casino Rules · Draw One</div>
   </div>
   <div id="score-panel">
-    <div class="score-item"><span class="score-label">Bankroll</span><span class="score-value neutral" id="bankroll-display">$0.00</span></div>
-    <div class="score-item"><span class="score-label">Session</span><span class="score-value neutral" id="session-display">$0.00</span></div>
+    <div class="score-item">
+      <span class="score-label">Bankroll</span>
+      <span class="score-value neutral" id="bankroll-display">$0.00</span>
+    </div>
+    <div class="score-item">
+      <span class="score-label">Session</span>
+      <span class="score-value neutral" id="session-display">$0.00</span>
+    </div>
     <div id="multiplier-badge">1.00×</div>
   </div>
 </div>
@@ -261,63 +279,96 @@
 </div>
 
 <script>
-// ── CONSTANTS ────────────────────────────────────────────
-const SUITS = ['♠','♥','♦','♣'];
-const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const SUITS   = ['♠','♥','♦','♣'];
+const RANKS   = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const RED_SUITS = new Set(['♥','♦']);
-const SCORING = { DEAL_COST:-52, FOUNDATION_REWARD:5, RECYCLE_BASE:-5, MULTIPLIER_BONUS:0.05, WIN_BONUS:150 };
+const SCORING = {
+  DEAL_COST:        -52,
+  FOUNDATION_REWARD:  5,
+  RECYCLE_BASE:      -5,
+  MULTIPLIER_BONUS: 0.05,
+  WIN_BONUS:        150,
+};
 
-// ── SPRITE SHEET CONFIG ───────────────────────────────────
-// cardsLarge_tilemap_packed.png: 896×256px, 14 cols × 4 rows, 63×91px per cell
-// Cols 0–12: A 2 3 4 5 6 7 8 9 10 J Q K
-// Col 13:    card back (blue)
-// Row 0: Hearts  Row 1: Diamonds  Row 2: Clubs  Row 3: Spades
+// ═══════════════════════════════════════════════════════════
+// SPRITE SHEET
+// ───────────────────────────────────────────────────────────
+// File:  cardsLarge_tilemap_packed.png  (same folder as HTML)
+// Grid:  14 columns × 4 rows
+// Cell:  63 × 91 px  (portrait, matches CARD_RATIO exactly)
+//
+// Column order (0-indexed):
+//   0=A  1=2  2=3  3=4  4=5  5=6  6=7  7=8  8=9  9=10
+//   10=J  11=Q  12=K  13=card back
+//
+// Row order (0-indexed):
+//   0=Hearts  1=Diamonds  2=Clubs  3=Spades
+// ═══════════════════════════════════════════════════════════
 const SHEET_IMG  = 'cardsLarge_tilemap_packed.png';
 const SHEET_COLS = 14;
 const SHEET_ROWS = 4;
-const CELL_W     = 63; // source pixels per cell
-const CELL_H     = 91;
-const SUIT_ROW   = { '♥':0, '♦':1, '♣':2, '♠':3 };
+const CELL_W     = 63;   // px per cell in source image
+const CELL_H     = 91;   // px per cell in source image
+const CARD_RATIO = CELL_H / CELL_W;  // 91/63 ≈ 1.4444
 
-// cardWidth() returns the current rendered card width in pixels.
-// All sprite math is derived from this so cards always look correct
-// regardless of screen size.
-const CARD_RATIO = 91 / 63; // portrait aspect ratio for card slots
+const SUIT_ROW = { '♥':0, '♦':1, '♣':2, '♠':3 };
 
+// ── getCardWidth ──────────────────────────────────────────
+// Derives the rendered card width from the tableau layout.
+// Returns a fallback of 50 if the DOM isn't ready yet.
 function getCardWidth() {
   const el = document.getElementById('tableau');
-  const tableW = (el.parentElement ? el.parentElement.offsetWidth : 390) - 16;
+  if (!el || !el.parentElement) return 50;
+  const tableW = el.parentElement.offsetWidth - 16;
   const w = (tableW - 6 * 7) / 7;
-  return w > 10 ? w : 50; // fallback if DOM not ready
+  return w > 10 ? Math.round(w) : 50;
 }
 
-// Returns the inline style string for a sprite-sheet card background.
-// Uses pixel-based background-size + background-position so the cell
-// aligns precisely regardless of the element's aspect ratio.
+// ── spriteStyle ───────────────────────────────────────────
+// Returns inline CSS that positions the correct cell from the
+// sprite sheet using pixel-exact background-size/position.
+// Scaling: the entire sheet is stretched so each cell lands
+// at exactly cardW × cardH pixels. No percentages — no drift.
 function spriteStyle(col, row) {
-  const cardW   = Math.round(getCardWidth());
-  const cardH   = Math.round(cardW * CARD_RATIO);
-  // Scale the whole sheet so each cell is exactly cardW × cardH
-  const sheetW  = SHEET_COLS * cardW;
-  const sheetH  = SHEET_ROWS * cardH;
-  // Offset so the desired cell is at 0,0 of the element
-  const bx      = -(col * cardW);
-  const by      = -(row * cardH);
-  return `background-image:url('${SHEET_IMG}');background-repeat:no-repeat;background-size:${sheetW}px ${sheetH}px;background-position:${bx}px ${by}px;`;
+  const cardW  = getCardWidth();
+  const cardH  = Math.round(cardW * CARD_RATIO);
+  const sheetW = SHEET_COLS * cardW;   // full scaled sheet width
+  const sheetH = SHEET_ROWS * cardH;   // full scaled sheet height
+  const bx     = -(col * cardW);       // offset to the correct cell
+  const by     = -(row * cardH);
+  return [
+    `background-image:url('${SHEET_IMG}')`,
+    `background-repeat:no-repeat`,
+    `background-size:${sheetW}px ${sheetH}px`,
+    `background-position:${bx}px ${by}px`,
+  ].join(';');
 }
 
-function cardHTML(card, extraClass='', style='') {
+// ── cardHTML ──────────────────────────────────────────────
+// Renders a card div. The sprite sheet provides all visuals —
+// no inner HTML needed for face-up or face-down cards.
+function cardHTML(card, extraClass = '', style = '') {
+  const cardW = getCardWidth();
+  const cardH = Math.round(cardW * CARD_RATIO);
+
   if (!card.face) {
-    // Col 13, Row 0 = card back
-    return `<div class="card face-down ${extraClass}" style="${style};${spriteStyle(13, 0)}"></div>`;
+    // Col 13, Row 0 = card back graphic
+    return `<div class="card face-down ${extraClass}" style="${style};width:${cardW}px;height:${cardH}px;${spriteStyle(13, 0)};"></div>`;
   }
-  const col = RANKS.indexOf(card.rank); // 0–12
-  const row = SUIT_ROW[card.suit];     // 0–3
-  return `<div class="card face-up ${extraClass}" style="${style};${spriteStyle(col, row)}"></div>`;
+
+  const col = RANKS.indexOf(card.rank);  // 0–12
+  const row = SUIT_ROW[card.suit];       // 0–3
+  return `<div class="card face-up ${extraClass}" style="${style};width:${cardW}px;height:${cardH}px;${spriteStyle(col, row)};"></div>`;
 }
 
-// ── DRAW MODE ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// DRAW MODE
+// ═══════════════════════════════════════════════════════════
 let drawMode = 1;
+
 function setDrawMode(n) {
   drawMode = n;
   document.getElementById('btn-draw1').classList.toggle('active', n === 1);
@@ -326,25 +377,39 @@ function setDrawMode(n) {
   if (state && state.waste) renderWaste();
 }
 
-// ── STATE ─────────────────────────────────────────────────
-let state = {};
-let history = [];
-let bankroll = 0, sessionEarnings = 0, multiplier = 1.0, stockCycles = 0;
-let selectedCard = null, selectedSource = null;
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let state          = {};
+let history        = [];
+let bankroll       = 0;
+let sessionEarnings = 0;
+let multiplier     = 1.0;
+let stockCycles    = 0;
+let selectedCard   = null;
+let selectedSource = null;
 
 function initState() {
-  return { stock:[], waste:[], foundations:[[],[],[],[]], tableau:[[],[],[],[],[],[],[]], foundationCount:0 };
+  return {
+    stock:        [],
+    waste:        [],
+    foundations:  [[], [], [], []],
+    tableau:      [[], [], [], [], [], [], []],
+    foundationCount: 0,
+  };
 }
 
 function buildDeck() {
   const d = [];
-  for (const s of SUITS) for (const r of RANKS) d.push({ suit:s, rank:r, face:false });
+  for (const s of SUITS)
+    for (const r of RANKS)
+      d.push({ suit: s, rank: r, face: false });
   return d;
 }
 
 function shuffle(a) {
-  for (let i = a.length-1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -353,8 +418,11 @@ function shuffle(a) {
 function rankIndex(r) { return RANKS.indexOf(r); }
 function isRed(s)     { return RED_SUITS.has(s); }
 
-// ── CONFIRM DIALOG ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// CONFIRM DIALOG
+// ═══════════════════════════════════════════════════════════
 let confirmCB = null;
+
 function showConfirm(title, msg, cb) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-msg').textContent   = msg;
@@ -371,154 +439,230 @@ function confirmOK() {
 }
 
 function promptNewGame() {
-  showConfirm('New Game?', `Start a new hand? Entry costs $${Math.abs(SCORING.DEAL_COST)} and current progress is lost.`, newGame);
+  showConfirm(
+    'New Game?',
+    `Start a new hand? Entry costs $${Math.abs(SCORING.DEAL_COST)} and current progress is lost.`,
+    newGame
+  );
 }
 function promptResetBank() {
-  showConfirm('Reset Bankroll?', 'Reset your bankroll and session to $0 and deal a new game?', () => {
-    bankroll = 0; sessionEarnings = 0; newGame();
-  });
+  showConfirm(
+    'Reset Bankroll?',
+    'Reset your bankroll and session to $0 and deal a new game?',
+    () => { bankroll = 0; sessionEarnings = 0; newGame(); }
+  );
 }
 
-// ── GAME INIT ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// GAME INIT
+// ═══════════════════════════════════════════════════════════
 function newGame() {
-  bankroll       += SCORING.DEAL_COST;
+  bankroll        += SCORING.DEAL_COST;
   sessionEarnings += SCORING.DEAL_COST;
-  multiplier = 1.0; stockCycles = 0; history = [];
+  multiplier   = 1.0;
+  stockCycles  = 0;
+  history      = [];
+
   document.getElementById('win-overlay').classList.remove('show');
   clearConfetti();
+
   state = initState();
   const deck = shuffle(buildDeck());
   let idx = 0;
   for (let col = 0; col < 7; col++)
     for (let row = 0; row <= col; row++) {
-      const c = deck[idx++]; c.face = (row === col); state.tableau[col].push(c);
+      const c = deck[idx++];
+      c.face = (row === col);
+      state.tableau[col].push(c);
     }
-  while (idx < deck.length) { const c = deck[idx++]; c.face = false; state.stock.push(c); }
-  selectedCard = null; selectedSource = null;
-  updateCycleInfo(); updateScoreDisplay(); render();
+  while (idx < deck.length) {
+    const c = deck[idx++];
+    c.face = false;
+    state.stock.push(c);
+  }
+
+  selectedCard   = null;
+  selectedSource = null;
+  updateCycleInfo();
+  updateScoreDisplay();
+  render();
   showToast(`-$${Math.abs(SCORING.DEAL_COST).toFixed(2)} · New deal!`);
 }
 
-// ── SELECTION ─────────────────────────────────────────────
-function clearSelection() { selectedCard = null; selectedSource = null; render(); }
+// ═══════════════════════════════════════════════════════════
+// SELECTION
+// ═══════════════════════════════════════════════════════════
+function clearSelection() {
+  selectedCard   = null;
+  selectedSource = null;
+  render();
+}
 
-// ── MOVES ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// MOVE LOGIC
+// ═══════════════════════════════════════════════════════════
 function canPlaceOnFoundation(card, fi) {
   const f = state.foundations[fi];
   if (!f.length) return card.rank === 'A';
-  const top = f[f.length-1];
+  const top = f[f.length - 1];
   return top.suit === card.suit && rankIndex(card.rank) === rankIndex(top.rank) + 1;
 }
+
 function canPlaceOnTableau(card, col) {
   const t = state.tableau[col];
   if (!t.length) return card.rank === 'K';
-  const top = t[t.length-1];
-  return top.face && isRed(card.suit) !== isRed(top.suit) && rankIndex(card.rank) === rankIndex(top.rank) - 1;
+  const top = t[t.length - 1];
+  return top.face
+    && isRed(card.suit) !== isRed(top.suit)
+    && rankIndex(card.rank) === rankIndex(top.rank) - 1;
 }
+
 function findFoundationFor(card) {
   for (let i = 0; i < 4; i++) if (canPlaceOnFoundation(card, i)) return i;
   return -1;
 }
 
 function saveHistory() {
-  history.push(JSON.parse(JSON.stringify({ state, bankroll, sessionEarnings, multiplier, stockCycles })));
+  history.push(JSON.parse(JSON.stringify({
+    state, bankroll, sessionEarnings, multiplier, stockCycles
+  })));
   if (history.length > 50) history.shift();
 }
 
 function undoMove() {
   if (!history.length) { showToast('Nothing to undo'); return; }
   const h = history.pop();
-  state = h.state; bankroll = h.bankroll; sessionEarnings = h.sessionEarnings;
-  multiplier = h.multiplier; stockCycles = h.stockCycles;
-  selectedCard = null; selectedSource = null;
-  updateScoreDisplay(); updateCycleInfo(); render();
+  state           = h.state;
+  bankroll        = h.bankroll;
+  sessionEarnings = h.sessionEarnings;
+  multiplier      = h.multiplier;
+  stockCycles     = h.stockCycles;
+  selectedCard    = null;
+  selectedSource  = null;
+  updateScoreDisplay();
+  updateCycleInfo();
+  render();
   showToast('Undone');
 }
 
 function moveToFoundation(card, src, fi) {
-  saveHistory(); removeSrc(src);
-  state.foundations[fi].push(card); state.foundationCount++;
+  saveHistory();
+  removeSrc(src);
+  state.foundations[fi].push(card);
+  state.foundationCount++;
   const reward = SCORING.FOUNDATION_REWARD * multiplier;
-  bankroll += reward; sessionEarnings += reward;
+  bankroll        += reward;
+  sessionEarnings += reward;
   multiplier = +(1 + state.foundationCount * SCORING.MULTIPLIER_BONUS).toFixed(3);
-  flipTopTableau(); checkWin(); updateScoreDisplay(); updateCycleInfo(); render();
+  flipTopTableau();
+  checkWin();
+  updateScoreDisplay();
+  updateCycleInfo();
+  render();
   floatDollar(`+$${reward.toFixed(2)}`, 'positive');
 }
 
 function moveStackToTableau(cards, src, col) {
-  saveHistory(); removeStackSrc(src, cards.length);
+  saveHistory();
+  removeStackSrc(src, cards.length);
   for (const c of cards) { c.face = true; state.tableau[col].push(c); }
-  flipTopTableau(); updateScoreDisplay(); render();
+  flipTopTableau();
+  updateScoreDisplay();
+  render();
 }
 
 function removeSrc(src) {
-  if (src.type === 'waste')      state.waste.pop();
+  if      (src.type === 'waste')      state.waste.pop();
   else if (src.type === 'tableau')    state.tableau[src.col].pop();
   else if (src.type === 'foundation') state.foundations[src.fi].pop();
 }
+
 function removeStackSrc(src, n) {
-  if (src.type === 'tableau')         state.tableau[src.col].splice(-n, n);
+  if      (src.type === 'tableau')    state.tableau[src.col].splice(-n, n);
   else if (src.type === 'waste')      state.waste.pop();
   else if (src.type === 'foundation') state.foundations[src.fi].pop();
 }
+
 function flipTopTableau() {
   for (let col = 0; col < 7; col++) {
     const t = state.tableau[col];
-    if (t.length && !t[t.length-1].face) t[t.length-1].face = true;
+    if (t.length && !t[t.length - 1].face) t[t.length - 1].face = true;
   }
 }
 
 function getCardsFromSrc(src) {
-  if (src.type === 'tableau')    return state.tableau[src.col].slice(src.stackStart);
-  if (src.type === 'waste')      return state.waste.length ? [state.waste[state.waste.length-1]] : [];
-  if (src.type === 'foundation') { const f = state.foundations[src.fi]; return f.length ? [f[f.length-1]] : []; }
+  if (src.type === 'tableau')
+    return state.tableau[src.col].slice(src.stackStart);
+  if (src.type === 'waste')
+    return state.waste.length ? [state.waste[state.waste.length - 1]] : [];
+  if (src.type === 'foundation') {
+    const f = state.foundations[src.fi];
+    return f.length ? [f[f.length - 1]] : [];
+  }
   return [];
 }
 
-// ── STOCK ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// STOCK
+// ═══════════════════════════════════════════════════════════
 function clickStock() {
   clearSelection();
   if (!state.stock.length) {
     if (!state.waste.length) { showToast('No cards left'); return; }
-    saveHistory(); stockCycles++;
+    saveHistory();
+    stockCycles++;
     const penalty = SCORING.RECYCLE_BASE * stockCycles * multiplier;
-    bankroll += penalty; sessionEarnings += penalty;
-    state.stock = [...state.waste].reverse().map(c => ({ ...c, face:false }));
+    bankroll        += penalty;
+    sessionEarnings += penalty;
+    state.stock = [...state.waste].reverse().map(c => ({ ...c, face: false }));
     state.waste = [];
-    updateScoreDisplay(); updateCycleInfo(); render();
+    updateScoreDisplay();
+    updateCycleInfo();
+    render();
     floatDollar(`${penalty.toFixed(2)}`, 'negative');
     showToast(`Recycled · Penalty $${Math.abs(penalty).toFixed(2)}`);
     return;
   }
   saveHistory();
   const n = drawMode === 3 ? Math.min(3, state.stock.length) : 1;
-  for (let i = 0; i < n; i++) { const c = state.stock.pop(); c.face = true; state.waste.push(c); }
+  for (let i = 0; i < n; i++) {
+    const c = state.stock.pop();
+    c.face = true;
+    state.waste.push(c);
+  }
   render();
 }
 
-// ── CLICK HANDLERS ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// CLICK HANDLERS
+// ═══════════════════════════════════════════════════════════
 function handleWasteClick(e) {
   if (!state.waste.length) return;
   if (drawMode === 3 && e?.target?.classList.contains('waste-behind')) return;
-  const card = state.waste[state.waste.length-1];
+  const card = state.waste[state.waste.length - 1];
   if (selectedSource) { clearSelection(); return; }
   const fi = findFoundationFor(card);
-  if (fi >= 0) { moveToFoundation(card, { type:'waste' }, fi); return; }
-  selectedCard = card; selectedSource = { type:'waste' };
+  if (fi >= 0) { moveToFoundation(card, { type: 'waste' }, fi); return; }
+  selectedCard   = card;
+  selectedSource = { type: 'waste' };
   render();
 }
 
 function handleFoundationClick(fi) {
   if (!selectedSource) {
     if (!state.foundations[fi].length) return;
-    selectedCard  = state.foundations[fi][state.foundations[fi].length-1];
-    selectedSource = { type:'foundation', fi };
-    render(); return;
+    selectedCard   = state.foundations[fi][state.foundations[fi].length - 1];
+    selectedSource = { type: 'foundation', fi };
+    render();
+    return;
   }
   if (selectedCard && canPlaceOnFoundation(selectedCard, fi)) {
     moveToFoundation(selectedCard, selectedSource, fi);
-    selectedCard = null; selectedSource = null;
-  } else { clearSelection(); }
+    selectedCard   = null;
+    selectedSource = null;
+  } else {
+    clearSelection();
+  }
 }
 
 function handleTableauClick(col, cardIdx) {
@@ -527,21 +671,25 @@ function handleTableauClick(col, cardIdx) {
     if (!t.length) return;
     const card = t[cardIdx];
     if (!card.face) return;
-    if (cardIdx === t.length-1) {
+    if (cardIdx === t.length - 1) {
       const fi = findFoundationFor(card);
-      if (fi >= 0) { moveToFoundation(card, { type:'tableau', col }, fi); return; }
+      if (fi >= 0) { moveToFoundation(card, { type: 'tableau', col }, fi); return; }
     }
     selectedCard   = t[cardIdx];
-    selectedSource = { type:'tableau', col, stackStart:cardIdx };
-    render(); return;
+    selectedSource = { type: 'tableau', col, stackStart: cardIdx };
+    render();
+    return;
   }
   const cards = getCardsFromSrc(selectedSource);
   if (!cards.length) { clearSelection(); return; }
   if (canPlaceOnTableau(cards[0], col)) {
     if (t.length === 0 && cards[0].rank !== 'K') { clearSelection(); return; }
     moveStackToTableau(cards, selectedSource, col);
-    selectedCard = null; selectedSource = null;
-  } else { clearSelection(); }
+    selectedCard   = null;
+    selectedSource = null;
+  } else {
+    clearSelection();
+  }
 }
 
 function handleEmptyTableauClick(col) {
@@ -549,89 +697,120 @@ function handleEmptyTableauClick(col) {
   const cards = getCardsFromSrc(selectedSource);
   if (cards.length && cards[0].rank === 'K') {
     moveStackToTableau(cards, selectedSource, col);
-    selectedCard = null; selectedSource = null;
-  } else { clearSelection(); }
+    selectedCard   = null;
+    selectedSource = null;
+  } else {
+    clearSelection();
+  }
 }
 
-// ── AUTO-COMPLETE ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// AUTO-COMPLETE
+// ═══════════════════════════════════════════════════════════
 function autoComplete() {
-  if (state.stock.length || state.waste.length) { showToast('Clear stock & waste first'); return; }
-  for (const col of state.tableau) for (const c of col) if (!c.face) { showToast('Flip all cards first'); return; }
+  if (state.stock.length || state.waste.length) {
+    showToast('Clear stock & waste first'); return;
+  }
+  for (const col of state.tableau)
+    for (const c of col)
+      if (!c.face) { showToast('Flip all cards first'); return; }
+
   function step() {
     for (let col = 0; col < 7; col++) {
-      const t = state.tableau[col]; if (!t.length) continue;
-      const fi = findFoundationFor(t[t.length-1]);
-      if (fi >= 0) { moveToFoundation(t[t.length-1], { type:'tableau', col }, fi); setTimeout(step, 100); return; }
+      const t = state.tableau[col];
+      if (!t.length) continue;
+      const fi = findFoundationFor(t[t.length - 1]);
+      if (fi >= 0) {
+        moveToFoundation(t[t.length - 1], { type: 'tableau', col }, fi);
+        setTimeout(step, 100);
+        return;
+      }
     }
   }
   step();
 }
 
-// ── WIN ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// WIN CHECK
+// ═══════════════════════════════════════════════════════════
 function checkWin() {
   if (state.foundationCount < 52) return;
   const bonus = SCORING.WIN_BONUS * multiplier;
-  bankroll += bonus; sessionEarnings += bonus; updateScoreDisplay();
+  bankroll        += bonus;
+  sessionEarnings += bonus;
+  updateScoreDisplay();
   setTimeout(() => {
     document.getElementById('win-amount').textContent  = `+$${bonus.toFixed(2)} Jackpot!`;
-    document.getElementById('win-subtitle').textContent = `Session: ${sessionEarnings>=0?'+':''}$${sessionEarnings.toFixed(2)} · ${multiplier.toFixed(2)}×`;
+    document.getElementById('win-subtitle').textContent =
+      `Session: ${sessionEarnings >= 0 ? '+' : ''}$${sessionEarnings.toFixed(2)} · ${multiplier.toFixed(2)}×`;
     document.getElementById('win-overlay').classList.add('show');
     launchConfetti();
   }, 300);
 }
 
-// ── SCORE DISPLAY ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// SCORE DISPLAY
+// ═══════════════════════════════════════════════════════════
 function updateScoreDisplay() {
   const br = document.getElementById('bankroll-display');
   const se = document.getElementById('session-display');
-  br.textContent = `${bankroll>=0?'+':''}$${Math.abs(bankroll).toFixed(2)}`;
+  br.textContent = `${bankroll >= 0 ? '+' : ''}$${Math.abs(bankroll).toFixed(2)}`;
   br.className   = 'score-value ' + (bankroll >= 0 ? 'positive' : 'negative');
-  se.textContent = `${sessionEarnings>=0?'+':''}$${Math.abs(sessionEarnings).toFixed(2)}`;
+  se.textContent = `${sessionEarnings >= 0 ? '+' : ''}$${Math.abs(sessionEarnings).toFixed(2)}`;
   se.className   = 'score-value ' + (sessionEarnings >= 0 ? 'positive' : 'negative');
   document.getElementById('multiplier-badge').textContent = `${multiplier.toFixed(2)}×`;
 }
+
 function updateCycleInfo() {
   document.getElementById('cycle-count').textContent     = stockCycles + 1;
-  document.getElementById('recycle-penalty').textContent = Math.abs(SCORING.RECYCLE_BASE * (stockCycles+1) * multiplier).toFixed(2);
+  document.getElementById('recycle-penalty').textContent =
+    Math.abs(SCORING.RECYCLE_BASE * (stockCycles + 1) * multiplier).toFixed(2);
 }
 
-// ── RENDER ────────────────────────────────────────────────
-function render() { renderStock(); renderWaste(); renderFoundations(); renderTableau(); }
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function render() {
+  renderStock();
+  renderWaste();
+  renderFoundations();
+  renderTableau();
+}
 
 function renderStock() {
-  const el = document.getElementById('stock-pile');
+  const el    = document.getElementById('stock-pile');
+  const cardW = getCardWidth();
+  const cardH = Math.round(cardW * CARD_RATIO);
+
   if (!state.stock.length) {
-    el.className  = 'slot empty';
-    el.innerHTML  = '↺';
-    el.style.cssText = '';
+    el.className     = 'slot empty';
+    el.innerHTML     = '↺';
+    el.style.cssText = `width:${cardW}px;height:${cardH}px;`;
   } else {
-    el.className = '';
-    el.innerHTML = '';
-    // Render as a face-down card; size it to match the calculated card dimensions
-    const cardW = Math.round(getCardWidth());
-    const cardH = Math.round(cardW * CARD_RATIO);
+    el.className     = '';
     el.style.cssText = `width:${cardW}px;height:${cardH}px;border-radius:4px;cursor:pointer;position:relative;flex-shrink:0;`;
-    el.innerHTML = cardHTML({ face:false }, '', `position:absolute;inset:0;width:${cardW}px;height:${cardH}px;`);
+    el.innerHTML     = cardHTML({ face: false }, '', 'position:absolute;inset:0;');
   }
   el.onclick = clickStock;
 }
 
 function renderWaste() {
   const el    = document.getElementById('waste-pile');
-  const cardW = Math.round(getCardWidth());
+  const cardW = getCardWidth();
   const cardH = Math.round(cardW * CARD_RATIO);
 
   if (!state.waste.length) {
     el.style.cssText = `width:${cardW}px;height:${cardH}px;position:relative;flex-shrink:0;`;
-    el.innerHTML     = `<div class="slot" style="position:absolute;inset:0;aspect-ratio:unset;width:${cardW}px;height:${cardH}px;"></div>`;
-    el.onclick = null; return;
+    el.innerHTML     = `<div class="slot" style="position:absolute;inset:0;width:${cardW}px;height:${cardH}px;"></div>`;
+    el.onclick = null;
+    return;
   }
 
   if (drawMode === 1) {
     el.style.cssText = `width:${cardW}px;height:${cardH}px;position:relative;flex-shrink:0;`;
-    const card = state.waste[state.waste.length-1];
+    const card = state.waste[state.waste.length - 1];
     const sel  = selectedSource?.type === 'waste';
-    el.innerHTML = cardHTML(card, sel ? 'selected' : '', `position:absolute;inset:0;width:${cardW}px;height:${cardH}px;`);
+    el.innerHTML = cardHTML(card, sel ? 'selected' : '', 'position:absolute;inset:0;');
     el.onclick   = handleWasteClick;
   } else {
     const visible   = state.waste.slice(-3);
@@ -646,7 +825,7 @@ function renderWaste() {
       el.innerHTML += cardHTML(
         card,
         (sel ? 'selected' : '') + (isTop ? ' waste-top' : ' waste-behind'),
-        `position:absolute;left:${left}px;top:0;width:${cardW}px;height:${cardH}px;z-index:${i+1};`
+        `position:absolute;left:${left}px;top:0;z-index:${i + 1};`
       );
     });
     el.onclick = handleWasteClick;
@@ -654,18 +833,19 @@ function renderWaste() {
 }
 
 function renderFoundations() {
-  const suits = ['♠','♥','♦','♣'];
+  const suits = ['♠', '♥', '♦', '♣'];
+  const cardW = getCardWidth();
+  const cardH = Math.round(cardW * CARD_RATIO);
+
   for (let fi = 0; fi < 4; fi++) {
-    const el   = document.getElementById('f' + fi);
-    const f    = state.foundations[fi];
-    const cardW = Math.round(getCardWidth());
-    const cardH = Math.round(cardW * CARD_RATIO);
+    const el = document.getElementById('f' + fi);
+    const f  = state.foundations[fi];
     if (!f.length) {
-      el.innerHTML = `<div class="slot foundation-slot" style="width:${cardW}px;height:${cardH}px;aspect-ratio:unset;"><span class="suit-hint">${suits[fi]}</span></div>`;
+      el.innerHTML = `<div class="slot foundation-slot" style="width:${cardW}px;height:${cardH}px;"><span class="suit-hint">${suits[fi]}</span></div>`;
     } else {
-      const card = f[f.length-1];
+      const card = f[f.length - 1];
       const sel  = selectedSource?.type === 'foundation' && selectedSource.fi === fi;
-      el.innerHTML = cardHTML(card, sel ? 'selected' : '', `position:relative;width:${cardW}px;height:${cardH}px;`);
+      el.innerHTML = cardHTML(card, sel ? 'selected' : '', `position:relative;`);
     }
     el.onclick = () => handleFoundationClick(fi);
   }
@@ -674,10 +854,9 @@ function renderFoundations() {
 function renderTableau() {
   const tabEl  = document.getElementById('tableau');
   tabEl.innerHTML = '';
-  const tableW = tabEl.parentElement.offsetWidth - 16;
-  const colW   = (tableW - 6 * 7) / 7;
-  const cardH  = Math.round(colW * CARD_RATIO);
-  const cardW  = Math.round(colW);
+
+  const cardW = getCardWidth();
+  const cardH = Math.round(cardW * CARD_RATIO);
 
   for (let col = 0; col < 7; col++) {
     const colEl = document.createElement('div');
@@ -685,9 +864,10 @@ function renderTableau() {
     const t = state.tableau[col];
 
     if (!t.length) {
-      colEl.innerHTML = `<div class="slot" style="position:relative;width:${cardW}px;height:${cardH}px;aspect-ratio:unset;"></div>`;
+      colEl.innerHTML = `<div class="slot" style="width:${cardW}px;height:${cardH}px;"></div>`;
       colEl.onclick   = () => handleEmptyTableauClick(col);
-      tabEl.appendChild(colEl); continue;
+      tabEl.appendChild(colEl);
+      continue;
     }
 
     const fuCount = t.filter(c => c.face).length;
@@ -696,16 +876,19 @@ function renderTableau() {
     const maxOff  = Math.min(24, Math.floor((availH - cardH) / Math.max(1, t.length - 1)));
     const fdOff   = Math.min(8, maxOff);
     const fuOff   = Math.min(maxOff, 26);
+
     colEl.style.height = (cardH + fdCount * fdOff + fuCount * fuOff) + 'px';
 
     let top = 0;
     for (let i = 0; i < t.length; i++) {
       const card  = t[i];
-      const isSel = selectedSource?.type === 'tableau' && selectedSource.col === col && i >= selectedSource.stackStart;
+      const isSel = selectedSource?.type === 'tableau'
+        && selectedSource.col === col
+        && i >= selectedSource.stackStart;
       colEl.innerHTML += cardHTML(
         card,
         isSel ? 'selected' : '',
-        `position:absolute;top:${top}px;left:0;width:${cardW}px;height:${cardH}px;z-index:${i+1};`
+        `position:absolute;top:${top}px;left:0;z-index:${i + 1};`
       );
       top += card.face ? fuOff : fdOff;
     }
@@ -713,29 +896,33 @@ function renderTableau() {
     colEl.onclick = (e) => {
       const cards = colEl.querySelectorAll('.card');
       let idx = -1;
-      for (let i = cards.length-1; i >= 0; i--) {
+      for (let i = cards.length - 1; i >= 0; i--) {
         const r = cards[i].getBoundingClientRect();
         if (e.clientY >= r.top && e.clientY <= r.bottom) { idx = i; break; }
       }
       if (idx >= 0) handleTableauClick(col, idx);
       else if (!t.length) handleEmptyTableauClick(col);
     };
+
     tabEl.appendChild(colEl);
   }
 }
 
-// ── TOAST ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// TOAST / FX
+// ═══════════════════════════════════════════════════════════
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg;
+  t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
 function floatDollar(text, cls) {
   const el = document.createElement('div');
-  el.className  = 'float-dollar';
+  el.className   = 'float-dollar';
   el.textContent = text;
   el.style.color = cls === 'positive' ? 'var(--money-green)' : 'var(--money-red)';
   el.style.left  = (30 + Math.random() * 40) + '%';
@@ -746,21 +933,33 @@ function floatDollar(text, cls) {
 
 function launchConfetti() {
   const colors = ['#c9a84c','#2ecc71','#e8c96a','#fff','#f39c12','#3498db'];
-  for (let i = 0; i < 60; i++) setTimeout(() => {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.left = Math.random() * 100 + 'vw';
-    el.style.background = colors[Math.floor(Math.random() * colors.length)];
-    el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
-    el.style.animationDelay   = Math.random() * 0.5 + 's';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3500);
-  }, i * 40);
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left             = Math.random() * 100 + 'vw';
+      el.style.background       = colors[Math.floor(Math.random() * colors.length)];
+      el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      el.style.animationDelay   = Math.random() * 0.5 + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }, i * 40);
+  }
 }
-function clearConfetti() { document.querySelectorAll('.confetti-piece').forEach(e => e.remove()); }
 
-// ── BOOT ─────────────────────────────────────────────────
-setDrawMode(3);
+function clearConfetti() {
+  document.querySelectorAll('.confetti-piece').forEach(e => e.remove());
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ───────────────────────────────────────────────────────────
+// Two requestAnimationFrame calls are intentional.
+// The first lets the browser calculate flex/grid layout widths.
+// The second confirms those widths are stable before we render
+// cards, so getCardWidth() always returns a real pixel value.
+// ═══════════════════════════════════════════════════════════
+setDrawMode(1);
 window.addEventListener('DOMContentLoaded', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
