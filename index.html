@@ -760,8 +760,14 @@ function launchConfetti() {
 function clearConfetti() { document.querySelectorAll('.confetti-piece').forEach(e => e.remove()); }
 
 // ── BOOT ─────────────────────────────────────────────────
-setDrawMode(1);
-newGame();
+setDrawMode(3);
+window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      newGame();
+    });
+  });
+});
 </script>
 </body>
 </html>
