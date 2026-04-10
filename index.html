@@ -912,8 +912,15 @@ function renderTableau() {
         const r = cards[i].getBoundingClientRect();
         if (e.clientY >= r.top && e.clientY <= r.bottom) { idx = i; break; }
       }
-      if (idx >= 0) handleTableauClick(col, idx);
-      else if (!t.length) handleEmptyTableauClick(col);
+      if (t.length === 0) {
+        // Empty column — always route to empty handler regardless of idx
+        handleEmptyTableauClick(col);
+      } else if (idx >= 0) {
+        handleTableauClick(col, idx);
+      } else {
+        // Tap missed all card rects but column has cards — use top card
+        handleTableauClick(col, t.length - 1);
+      }
     };
 
     tabEl.appendChild(colEl);
