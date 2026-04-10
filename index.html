@@ -95,7 +95,7 @@
   .col { flex: 1; display: flex; flex-direction: column; min-height: 80px; position: relative; }
 
   .slot {
-    width: 100%; aspect-ratio: 63/88; border-radius: 6px;
+    width: 100%; aspect-ratio: 63/91; border-radius: 6px;
     border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15); flex-shrink: 0; position: relative;
   }
   .slot.foundation-slot { display: flex; align-items: center; justify-content: center; }
@@ -122,7 +122,7 @@
   .card.waste-behind { cursor: default; filter: brightness(0.82); }
 
   /* ── Stock / waste / foundations ── */
-  #stock-pile { flex: 1; aspect-ratio: 63/88; border-radius: 6px; cursor: pointer; position: relative; flex-shrink: 0; }
+  #stock-pile { flex: 1; aspect-ratio: 63/91; border-radius: 6px; cursor: pointer; position: relative; flex-shrink: 0; }
   #stock-pile.empty {
     border: 1.5px dashed rgba(201,168,76,0.3); background: rgba(0,0,0,0.15);
     display: flex; align-items: center; justify-content: center; color: rgba(201,168,76,0.4); font-size: 1.4rem;
@@ -131,7 +131,7 @@
   #waste-pile { position: relative; flex-shrink: 0; }
   .spacer { flex: 1; }
   #foundations { display: flex; gap: 7px; flex: 4; }
-  .foundation { flex: 1; position: relative; aspect-ratio: 63/88; }
+  .foundation { flex: 1; position: relative; aspect-ratio: 63/91; }
 
   /* ── Bottom controls (fixed) ── */
   #controls {
@@ -282,7 +282,7 @@ const SUIT_ROW   = { '♥':0, '♦':1, '♣':2, '♠':3 };
 // cardWidth() returns the current rendered card width in pixels.
 // All sprite math is derived from this so cards always look correct
 // regardless of screen size.
-const CARD_RATIO = 88 / 63; // portrait aspect ratio for card slots
+const CARD_RATIO = 91 / 63; // portrait aspect ratio for card slots
 
 function getCardWidth() {
   const el = document.getElementById('tableau');
