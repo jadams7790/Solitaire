@@ -268,15 +268,15 @@ const RED_SUITS = new Set(['♥','♦']);
 const SCORING = { DEAL_COST:-52, FOUNDATION_REWARD:5, RECYCLE_BASE:-5, MULTIPLIER_BONUS:0.05, WIN_BONUS:150 };
 
 // ── SPRITE SHEET CONFIG ───────────────────────────────────
-// cardsLarge_tilemap_packed.png: 896×256px, 14 cols × 4 rows, 64×64px per cell
+// cardsLarge_tilemap_packed.png: 896×256px, 14 cols × 4 rows, 63×91px per cell
 // Cols 0–12: A 2 3 4 5 6 7 8 9 10 J Q K
 // Col 13:    card back (blue)
 // Row 0: Hearts  Row 1: Diamonds  Row 2: Clubs  Row 3: Spades
 const SHEET_IMG  = 'cardsLarge_tilemap_packed.png';
 const SHEET_COLS = 14;
 const SHEET_ROWS = 4;
-const CELL_W     = 64; // source pixels per cell
-const CELL_H     = 64;
+const CELL_W     = 63; // source pixels per cell
+const CELL_H     = 91;
 const SUIT_ROW   = { '♥':0, '♦':1, '♣':2, '♠':3 };
 
 // cardWidth() returns the current rendered card width in pixels.
