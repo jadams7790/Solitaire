@@ -296,7 +296,7 @@ const SCORING = {
 // ═══════════════════════════════════════════════════════════
 // SPRITE SHEET
 // ───────────────────────────────────────────────────────────
-// File:  cardsLarge_tilemap.png  (same folder as HTML)
+// File:  cardsLarge_tilemap_packed.png  (same folder as HTML)
 // Grid:  14 columns × 4 rows
 // Cell:  63 × 91 px  (portrait, matches CARD_RATIO exactly)
 //
@@ -307,7 +307,7 @@ const SCORING = {
 // Row order (0-indexed):
 //   0=Hearts  1=Diamonds  2=Clubs  3=Spades
 // ═══════════════════════════════════════════════════════════
-const SHEET_IMG  = 'cardsLarge_tilemap.png';
+const SHEET_IMG  = 'cardsLarge_tilemap_packed.png';
 const SHEET_COLS = 14;
 const SHEET_ROWS = 4;
 const CELL_W     = 63;   // px per cell in source image
@@ -318,13 +318,17 @@ const SUIT_ROW = { '♥':0, '♦':1, '♣':2, '♠':3 };
 
 // ── getCardWidth ──────────────────────────────────────────
 // Derives the rendered card width from the tableau layout.
-// Returns a fallback of 50 if the DOM isn't ready yet.
+// Caches the result once a real value is available so sprite
+// rendering never falls back to 50px after the first valid read.
+let _cachedCardWidth = 0;
+
 function getCardWidth() {
   const el = document.getElementById('tableau');
-  if (!el || !el.parentElement) return 50;
+  if (!el || !el.parentElement) return _cachedCardWidth || 50;
   const tableW = el.parentElement.offsetWidth - 16;
-  const w = (tableW - 6 * 7) / 7;
-  return w > 10 ? Math.round(w) : 50;
+  const w = Math.round((tableW - 6 * 7) / 7);
+  if (w > 10) { _cachedCardWidth = w; return w; }
+  return _cachedCardWidth || 50;
 }
 
 // ── spriteStyle ───────────────────────────────────────────
@@ -367,7 +371,7 @@ function cardHTML(card, extraClass = '', style = '') {
 // ═══════════════════════════════════════════════════════════
 // DRAW MODE
 // ═══════════════════════════════════════════════════════════
-let drawMode = 3;
+let drawMode = 1;
 
 function setDrawMode(n) {
   drawMode = n;
@@ -667,10 +671,13 @@ function handleFoundationClick(fi) {
 
 function handleTableauClick(col, cardIdx) {
   const t = state.tableau[col];
+
+  // ── No card selected yet — select one ──
   if (!selectedSource) {
     if (!t.length) return;
     const card = t[cardIdx];
     if (!card.face) return;
+    // Auto-send to foundation if it fits (top card only)
     if (cardIdx === t.length - 1) {
       const fi = findFoundationFor(card);
       if (fi >= 0) { moveToFoundation(card, { type: 'tableau', col }, fi); return; }
@@ -680,10 +687,14 @@ function handleTableauClick(col, cardIdx) {
     render();
     return;
   }
+
+  // ── Card already selected — try to place it ──
   const cards = getCardsFromSrc(selectedSource);
   if (!cards.length) { clearSelection(); return; }
+
   if (canPlaceOnTableau(cards[0], col)) {
-    if (t.length === 0 && cards[0].rank !== 'K') { clearSelection(); return; }
+    // canPlaceOnTableau already handles the empty-column King rule,
+    // so no extra check needed here
     moveStackToTableau(cards, selectedSource, col);
     selectedCard   = null;
     selectedSource = null;
@@ -695,7 +706,8 @@ function handleTableauClick(col, cardIdx) {
 function handleEmptyTableauClick(col) {
   if (!selectedSource) return;
   const cards = getCardsFromSrc(selectedSource);
-  if (cards.length && cards[0].rank === 'K') {
+  if (!cards.length) { clearSelection(); return; }
+  if (canPlaceOnTableau(cards[0], col)) {
     moveStackToTableau(cards, selectedSource, col);
     selectedCard   = null;
     selectedSource = null;
@@ -959,13 +971,19 @@ function clearConfetti() {
 // The second confirms those widths are stable before we render
 // cards, so getCardWidth() always returns a real pixel value.
 // ═══════════════════════════════════════════════════════════
-setDrawMode(3);
+setDrawMode(1);
 window.addEventListener('DOMContentLoaded', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       newGame();
     });
   });
+});
+
+// Re-render on orientation change / resize so sprite sizes stay correct
+window.addEventListener('resize', () => {
+  _cachedCardWidth = 0; // invalidate cache
+  requestAnimationFrame(() => { requestAnimationFrame(() => { render(); }); });
 });
 </script>
 </body>
